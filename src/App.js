@@ -1,23 +1,84 @@
 import logo from './logo.svg';
 import './App.css';
+import { useState } from 'react';
+import { useEffect } from 'react';
 
 function App() {
+
+  const [tweets, settweets] = useState([])
+  const [tweet, settweet] = useState("")
+
+  async function getTweets() {
+    let data = await fetch("https://apex.oracle.com/pls/apex/sowmith_workspace/tweets/get")
+    let convertedData = await data.json()
+
+    console.log(convertedData)
+    settweets(convertedData.items)
+  }
+  async function postTweet() {
+    settweet("")
+    let date =new Date()
+ await fetch(`https://apex.oracle.com/pls/apex/sowmith_workspace/tweets/post?tweets=${tweet}&datetime=${date.getDate()+"-"+date.getMonth()+"-"+date.getFullYear()}`,{method:"POST"})
+ getTweets()
+  }
+  async function likes(){
+    
+  }
+  
+  useEffect(() => {
+    getTweets()
+  }, [])
+  
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="container">
+      <div className="row">
+        <div className="col-3">
+          <i className="bi bi-twitter text-primary h1"></i>
+        </div>
+        <div className="col-6">
+          <div className="row">
+            <div className="col">
+              <h3>Home</h3>
+              <hr />
+            </div>
+
+          </div>
+          <div className="row">
+            <div className="col-2 text-center">
+              <i className="bi bi-person-circle h1 "></i>
+            </div>
+            <div className="col">
+              <input value={tweet} onChange={(event)=>{
+                settweet(event.target.value)
+              }} type="text" placeholder="What's happening?" className="form-control" />
+              <button onClick={postTweet} className={`btn btn-primary float-end my-2 ${tweet===""?"disabled":""}`}>tweet</button>
+            </div>
+          </div>
+          <div className="row">
+            <div className="col">
+              {
+                tweets.map((Element) => {
+                  return <div className="rounded  border border-3 p-2 my-2">
+                    <p> {Element.datetime}</p>
+                    <h3> {Element.tweets}</h3>
+                    <div className=' text-end'>
+                        <i onClick={()=>{ 
+                          fetch(`https://apex.oracle.com/pls/apex/sowmith_workspace/tweets/likes?tweet=${Element.tweets}`,{method:"POST"}).then( getTweets())}
+                     } class="bi bi-heart"></i>
+                        <span className='mx-2 '>{Element.likes}</span>
+                    </div>
+
+                  </div>
+                })
+              }
+            </div>
+          </div>
+        </div>
+        <div className="col-3 ">
+          <input type="text" placeholder='Search Tweets' className='form-control' />
+        </div>
+      </div>
+
     </div>
   );
 }
