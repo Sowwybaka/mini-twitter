@@ -6,7 +6,9 @@ import { useEffect } from 'react';
 function App() {
 
   const [tweets, settweets] = useState([])
-  const [tweet, settweet] = useState("")
+  const [searchResults , setSearchResults] = useState([])
+  const [searchKeyword , setSearchKeyword] = useState("")
+  const [tweet, settweet] = useState("") 
 
   async function getTweets() {
     let data = await fetch("https://apex.oracle.com/pls/apex/sowmith_workspace/tweets/get")
@@ -15,14 +17,21 @@ function App() {
     console.log(convertedData)
     settweets(convertedData.items)
   }
+
   async function postTweet() {
     settweet("")
     let date =new Date()
  await fetch(`https://apex.oracle.com/pls/apex/sowmith_workspace/tweets/post?tweets=${tweet}&datetime=${date.getDate()+"-"+date.getMonth()+"-"+date.getFullYear()}`,{method:"POST"})
  getTweets()
   }
-  async function likes(){
-    
+  async function likes(){ 
+  }
+
+  async function searchTweet(){
+    console.log("searching....")
+    let data = await fetch(`https://apex.oracle.com/pls/apex/sowmith_workspace/tweets/search?keyword=${searchKeyword}`)
+    let convertedData = await data.json()
+    setSearchResults(convertedData.items)
   }
   
   useEffect(() => {
@@ -35,6 +44,7 @@ function App() {
         <div className="col-3">
           <i className="bi bi-twitter text-primary h1"></i>
         </div>
+        {/* home */}
         <div className="col-6">
           <div className="row">
             <div className="col">
@@ -74,8 +84,36 @@ function App() {
             </div>
           </div>
         </div>
+        {/* search */}
         <div className="col-3 ">
-          <input type="text" placeholder='Search Tweets' className='form-control' />
+          <div className="row">
+            <div className="col">
+          <input value = {searchKeyword} onChange={(e)=>{
+            setSearchKeyword(e.target.value)
+            console.log("search")
+            searchTweet()
+            }} type="text" placeholder='Search Tweets' className='form-control' />
+            </div>
+          </div>
+          <div className="row">
+            <div className="col">
+              {
+                searchResults.map((results) => {
+                  return <div className="rounded  border border-3 p-2 my-2">
+                  <p> {results.datetime}</p>
+                  <h3> {results.tweets}</h3>
+                  <div className=' text-end'>
+                      <i onClick={()=>{ 
+                        fetch(`https://apex.oracle.com/pls/apex/sowmith_workspace/tweets/likes?tweet=${results.tweets}`,{method:"POST"}).then( getTweets())}
+                   } class="bi bi-heart"></i>
+                      <span className='mx-2 '>{results.likes}</span>
+                  </div>
+
+                </div>
+                })
+              }
+            </div>
+          </div>
         </div>
       </div>
 
